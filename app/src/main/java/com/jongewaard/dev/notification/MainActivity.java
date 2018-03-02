@@ -18,15 +18,12 @@ import butterknife.OnClick;
 
 //WIN => CTRL + SHIFT + N -- Find file!
 public class MainActivity extends AppCompatActivity {
-
     @BindView(R.id.editTextTitle)
     EditText editTextTitle;
     @BindView(R.id.editTextMessage)
     EditText editTextMessage;
     @BindView(R.id.switchImportance)
     Switch switchImportance;
-    @BindView(R.id.buttonSend)
-    Button buttondSend;
 
     @BindString(R.string.switch_notifications_on) String switchTextOn;
     @BindString(R.string.switch_notifications_off) String switchTextOff;
@@ -34,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isHighImportance = false;
     private NotificationHandler notificationHandler;
 
+    private int counter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,24 +41,25 @@ public class MainActivity extends AppCompatActivity {
         notificationHandler = new NotificationHandler(this);
     }
 
-
+    @OnClick(R.id.buttonSend)
+    public void click() {
+        sendNotification();
+    }
 
     @OnCheckedChanged(R.id.switchImportance)
-    public void change(CompoundButton buttonView, boolean isChecked){
-
+    public void change(CompoundButton buttonView, boolean isChecked) {
         isHighImportance = isChecked;
         switchImportance.setText((isChecked) ? switchTextOn : switchTextOff);
     }
 
-
-    private void sendNotification(){
+    private void sendNotification() {
         String title = editTextTitle.getText().toString();
         String message = editTextMessage.getText().toString();
 
         if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(message)) {
             Notification.Builder nb = notificationHandler.createNotification(title, message, isHighImportance);
-           /* notificationHandler.getManager().notify(++counter, nb.build());
-            notificationHandler.publishNotificationSummaryGroup(isHighImportance);*/
+            notificationHandler.getManager().notify(++counter, nb.build());
+            notificationHandler.publishNotificationSummaryGroup(isHighImportance);
         }
     }
 }

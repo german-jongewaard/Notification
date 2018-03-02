@@ -3,10 +3,14 @@ package com.jongewaard.dev.notification;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Icon;
 import android.os.Build;
+import android.widget.Toast;
 
 /**
  * Created by german on 1-3-18.
@@ -14,109 +18,106 @@ import android.os.Build;
 
 public class NotificationHandler extends ContextWrapper {
 
+
     private NotificationManager manager;
 
     public static final String CHANNEL_HIGH_ID = "1";
-    public final String CHANNEL_HIGH_NAME = "HIGH CHANNEL";
+    private final String CHANNEL_HIGH_NAME = "HIGH CHANNEL";
     public static final String CHANNEL_LOW_ID = "2";
-    public final String CHANNEL_LOW_NAME = "LOW CHANNEL";
+    private final String CHANNEL_LOW_NAME = "LOW CHANNEL";
+    private final int SUMMARY_GROUP_ID = 1001;
+    private final String SUMMARY_GROUP_NAME = "GROUPING_NOTIFICATION";
 
     public NotificationHandler(Context context) {
         super(context);
-
-        CreateChanels();
+        createChannels();
     }
 
-    public NotificationManager getManager(){
-
-        if(manager == null){
+    public NotificationManager getManager() {
+        if (manager == null) {
             manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
         }
-
         return manager;
     }
 
-    private void CreateChanels(){
-
-        //Si es Mayor o igual es compatible con las versiones superiores a la 26
-        if(Build.VERSION.SDK_INT >=  26){
-            //Creating High Channel
+    private void createChannels() {
+        if (Build.VERSION.SDK_INT >= 26) {
+            // Creating High Channel
             NotificationChannel highChannel = new NotificationChannel(
                     CHANNEL_HIGH_ID, CHANNEL_HIGH_NAME, NotificationManager.IMPORTANCE_HIGH);
 
-            // ... Extra Config ...
-            highChannel.enableLights(true);//luces que parpadean en el celular (movil)
-            highChannel.setLightColor(Color.YELLOW); //parpadea con la luz amarilla
+            // ...Extra Config...
+            highChannel.enableLights(true);
+            highChannel.setLightColor(Color.YELLOW);
+            highChannel.setShowBadge(true);
+            highChannel.enableVibration(true);
+            // highChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            // Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            // highChannel.setSound(defaultSoundUri, null);
 
-            highChannel.setShowBadge(true);//en el icono muestra si hay mensajes con un mini circulo
-            highChannel.enableVibration(true);// llega mensaje y vibra el movil
-            highChannel.setVibrationPattern(new long[]{100,200,300,400,500,400,300,200,400});//vibrado configurado
-            highChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);//Notificaciones en pantalla
-
-
-
-
-
-
-            // ... Foot Extra Config ...
+            highChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 
             NotificationChannel lowChannel = new NotificationChannel(
                     CHANNEL_LOW_ID, CHANNEL_LOW_NAME, NotificationManager.IMPORTANCE_LOW);
-
             lowChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
 
             getManager().createNotificationChannel(highChannel);
             getManager().createNotificationChannel(lowChannel);
-
         }
-
     }
 
-    public  Notification.Builder createNotification(String title,
-                         String message, boolean isHighImportance){
-
-        if(Build.VERSION.SDK_INT >= 26){
-
-            if(isHighImportance == true){
-
+    public Notification.Builder createNotification(String title, String message, boolean isHighImportance) {
+        if (Build.VERSION.SDK_INT >= 26) {
+            if (isHighImportance) {
                 return this.createNotificationWithChannel(title, message, CHANNEL_HIGH_ID);
-            }else{
-                return this.createNotificationWithChannel(title, message, CHANNEL_LOW_ID);
             }
+            return this.createNotificationWithChannel(title, message, CHANNEL_LOW_ID);
         }
-        return createNotificationWithoutChannel(title, message);
-
+        return this.createNotificationWithoutChannel(title, message);
     }
 
-    private Notification.Builder createNotificationWithChannel(String title,
-                         String message, String channelId){
+    private Notification.Builder createNotificationWithChannel(String title, String message, String channelId) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent intent = new Intent(this, DetailsActivity.class);
+            intent.putExtra("title", title);
+            intent.putExtra("message", message);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-        if(Build.VERSION.SDK_INT >=  Build.VERSION_CODES.O){
+            Notification.Action action =
+                    new Notification.Action.Builder(Icon.createWithResource
+                            (this, android.R.drawable.ic_menu_send), "See Details", pIntent).build();
+
 
             return new Notification.Builder(getApplicationContext(), channelId)
                     .setContentTitle(title)
                     .setContentText(message)
+                    // .addAction(action)
                     .setColor(getColor(R.color.colorPrimary))
                     .setSmallIcon(android.R.drawable.stat_notify_chat)
+                    .setGroup(SUMMARY_GROUP_NAME)
                     .setAutoCancel(true);
         }
-
         return null;
     }
 
-    private Notification.Builder createNotificationWithoutChannel(String title,
-                         String message){
-
-
-            return new Notification.Builder(getApplicationContext())
-                    .setContentTitle(title)
-                    .setContentText(message)
-                    .setSmallIcon(android.R.drawable.stat_notify_chat)
-                    .setAutoCancel(true);
+    private Notification.Builder createNotificationWithoutChannel(String title, String message) {
+        return new Notification.Builder(getApplicationContext())
+                .setContentTitle(title)
+                .setContentText(message)
+                .setSmallIcon(android.R.drawable.stat_notify_chat)
+                .setAutoCancel(true);
     }
 
-
-
-
+    public void publishNotificationSummaryGroup(boolean isHighImportance) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = (isHighImportance) ? CHANNEL_HIGH_ID : CHANNEL_LOW_ID;
+            Notification summaryNotification = new Notification.Builder(getApplicationContext(), channelId)
+                    .setSmallIcon(android.R.drawable.stat_notify_call_mute)
+                    .setGroup(SUMMARY_GROUP_NAME)
+                    .setGroupSummary(true)
+                    .build();
+            getManager().notify(SUMMARY_GROUP_ID, summaryNotification);
+        }
+    }
 }
