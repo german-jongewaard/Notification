@@ -6,6 +6,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -23,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
     Switch switchImportance;
     @BindView(R.id.buttonSend)
     Button buttondSend;
+
+    private boolean idHighImportance = false;
 
 
 
@@ -44,11 +47,15 @@ public class MainActivity extends AppCompatActivity {
     @OnCheckedChanged(R.id.switchImportance)
     public void change(CompoundButton buttonView, boolean isChecked){
 
+        idHighImportance = isChecked;
+
+        Toast.makeText(this, "Working " + idHighImportance, Toast.LENGTH_SHORT).show();
 
     }
 
 
     private void sendNotification(){
 
+        Toast.makeText(this, "Working", Toast.LENGTH_SHORT).show();
     }
 }

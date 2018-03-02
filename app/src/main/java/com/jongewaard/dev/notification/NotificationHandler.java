@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.graphics.Color;
 import android.os.Build;
 
 /**
@@ -45,6 +46,20 @@ public class NotificationHandler extends ContextWrapper {
                     CHANNEL_HIGH_ID, CHANNEL_HIGH_NAME, NotificationManager.IMPORTANCE_HIGH);
 
             // ... Extra Config ...
+            highChannel.enableLights(true);//luces que parpadean en el celular (movil)
+            highChannel.setLightColor(Color.YELLOW); //parpadea con la luz amarilla
+
+            highChannel.setShowBadge(true);//en el icono muestra si hay mensajes con un mini circulo
+            highChannel.enableVibration(true);// llega mensaje y vibra el movil
+            highChannel.setVibrationPattern(new long[]{100,200,300,400,500,400,300,200,400});//vibrado configurado
+            highChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);//Notificaciones en pantalla
+
+
+
+
+
+
+            // ... Foot Extra Config ...
 
             NotificationChannel lowChannel = new NotificationChannel(
                     CHANNEL_LOW_ID, CHANNEL_LOW_NAME, NotificationManager.IMPORTANCE_LOW);
