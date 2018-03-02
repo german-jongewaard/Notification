@@ -64,6 +64,8 @@ public class NotificationHandler extends ContextWrapper {
             NotificationChannel lowChannel = new NotificationChannel(
                     CHANNEL_LOW_ID, CHANNEL_LOW_NAME, NotificationManager.IMPORTANCE_LOW);
 
+            lowChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+
             getManager().createNotificationChannel(highChannel);
             getManager().createNotificationChannel(lowChannel);
 
@@ -95,6 +97,7 @@ public class NotificationHandler extends ContextWrapper {
             return new Notification.Builder(getApplicationContext(), channelId)
                     .setContentTitle(title)
                     .setContentText(message)
+                    .setColor(getColor(R.color.colorPrimary))
                     .setSmallIcon(android.R.drawable.stat_notify_chat)
                     .setAutoCancel(true);
         }
